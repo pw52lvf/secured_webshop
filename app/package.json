@@ -2,7 +2,8 @@
   "name": "mon_application",
   "version": "1.0.0",
   "description": "Une application Node.js",
-  "main": "server.js",
+  "exports": "./server.js",
+  "type": "module",
   "scripts": {
     "start": "nodemon server.js -L"
   },
