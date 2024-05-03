@@ -5,7 +5,7 @@
   "exports": "./server.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon server.js -L"
+    "start": "nodemon server.mjs -L"
   },
   "dependencies": {
     "express": "^4.19.1",
