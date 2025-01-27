@@ -3,16 +3,17 @@
     <head>
         <meta charset="utf-8">
         <title>Authentification</title>
+        <link href="index.css" rel="stylesheet">
     </head>
     <body>
         <h1>Authentification</h1>
-        <form method="get" action="">
+        <form action="/User" method="post" action="">
             <p>Donnez-moi votre argent</p>
             <label>Nom d'utilisateur</label> : <input type="email" name="Username" id="Username"/>
             <br/><br/>
-            <label>Mot de passe</label> : <input type="text" name="Password" id="Password"/>
+            <label>Mot de passe</label> : <input type="password" name="Password" id="Password"/>
             <br/><br/>
-            <button>Submit</button>
+            <button type="submit">Submit</button>
         </form>
     </body>
 </html>
