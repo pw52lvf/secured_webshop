@@ -1,0 +1,12 @@
+.connection-signup {
+    margin-left: 50px;
+}
+body{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 100px;
+}
+button{
+    align-items: center
+}
