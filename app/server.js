@@ -35,9 +35,10 @@ app.use(express.static(path.join(__dirname, 'pages')));
 // Database connection
 const db = mysql.createConnection({
     host: 'localhost',
-    user: 'root', // Replace with your DB username
-    password: 'root', // Replace with your DB password
-    database: 'secure_webshop'
+    user: 'root',
+    password: 'root',
+    database: 'secure_webshop',
+    port: 6033
 });
 
 db.connect((err) => {
@@ -75,9 +76,9 @@ app.post('/auth/login', (req, res) => {
                 req.session.isAdmin = results[0].isAdmin;
                 
                 if (results[0].isAdmin) {
-                    res.redirect('/admin/dashboard');
+                    res.redirect('/admin.html');
                 } else {
-                    res.redirect('/user/dashboard');
+                    res.redirect('/user.html');
                 }
             } else {
                 res.status(401).json({ error: 'Invalid credentials' });
@@ -87,6 +88,10 @@ app.post('/auth/login', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'pages', 'index.html'));
+});
+
+app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'pages', 'index.html'));
 });
 
