@@ -105,3 +105,107 @@ app.use((err, req, res, next) => {
 https.createServer(sslOptions, app).listen(443, () => {
     console.log("Server running on port 443");
 });
+// Add this to your server.js file
+
+// Update this API endpoint to match your actual database schema
+app.get('/api/users', (req, res) => {
+    // Check if user is admin
+    if (!req.session.isAdmin) {
+        return res.status(403).json({ error: 'Unauthorized' });
+    }
+    
+    // Query the database for all users - adjust the columns to match your actual table
+    db.query(
+        'SELECT id, Username, isAdmin FROM Users', // Remove 'Email' from here
+        (error, results) => {
+            if (error) {
+                console.error('Database error:', error);
+                return res.status(500).json({ error: 'Internal server error' });
+            }
+            
+            // Add empty email field to each result for compatibility with the frontend
+            const usersWithEmail = results.map(user => ({
+                ...user,
+                Email: '' // Add an empty Email field
+            }));
+            
+            // Return the results as JSON
+            res.json(usersWithEmail);
+        }
+    );
+});
+
+app.get('/api/user-stats', (req, res) => {
+    // Check if user is admin
+    if (!req.session.isAdmin) {
+        return res.status(403).json({ error: 'Unauthorized' });
+    }
+    
+    // Get total users
+    db.query('SELECT COUNT(*) as totalUsers FROM Users', (error, totalResults) => {
+        if (error) {
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+        
+        // Get admin count
+        db.query('SELECT COUNT(*) as adminCount FROM Users WHERE isAdmin = 1', (error, adminResults) => {
+            if (error) {
+                return res.status(500).json({ error: 'Internal server error' });
+            }
+            
+            // Return stats without the newUsers query
+            res.json({
+                totalUsers: totalResults[0].totalUsers,
+                adminCount: adminResults[0].adminCount,
+                newUsers: 0 // Set to 0 since we don't have createdAt
+            });
+        });
+    });
+});
+
+// Add this to your server.js file
+
+// API endpoint to delete a user
+app.delete('/api/users/:id', (req, res) => {
+    // Check if user is admin
+    if (!req.session.isAdmin) {
+        return res.status(403).json({ error: 'Unauthorized' });
+    }
+    
+    const userId = req.params.id;
+    
+    // Prevent admins from deleting themselves
+    if (parseInt(userId) === req.session.userId) {
+        return res.status(400).json({ error: 'Cannot delete your own account' });
+    }
+    
+    // Delete the user
+    db.query(
+        'DELETE FROM Users WHERE id = ?',
+        [userId],
+        (error, results) => {
+            if (error) {
+                console.error('Database error:', error);
+                return res.status(500).json({ error: 'Internal server error' });
+            }
+            
+            if (results.affectedRows === 0) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+            
+            res.json({ message: 'User deleted successfully' });
+        }
+    );
+});
+
+// Add this to your server.js file
+
+// Logout route
+app.get('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).send('Error logging out');
+        }
+        res.redirect('/login');
+    });
+});
