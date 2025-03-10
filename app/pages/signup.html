@@ -2,20 +2,38 @@
 <html lang="fr">
     <head>
         <meta charset="utf-8">
-        <title>Authentification</title>
+        <title>Inscription</title>
         <link href="signup.css" rel="stylesheet">
     </head>
     <body>
         <h1>Inscription</h1>
-        <form action="/Signup" method="post" action="">
+        <form action="/auth/signup" method="post">
             <p>Donnez-moi votre argent</p>
-            <label>Nom d'utilisateur</label> : <input type="text" name="Username" id="Username"/>
+            <label for="Username">Nom d'utilisateur</label>
+            <input type="text" name="Username" id="Username" required/>
             <br/><br/>
-            <label>Mot de passe</label> : <input type="password" name="Password" id="Password"/>
+            <label for="Password">Mot de passe</label>
+            <input type="password" name="Password" id="Password" required/>
             <br/><br/>
-            <button type="submit">Submit</button>
+            <label for="ConfirmPassword">Confirmer le mot de passe</label>
+            <input type="password" name="ConfirmPassword" id="ConfirmPassword" required/>
             <br/><br/>
-            <a href="index.html" class="connection-signup">Connectez-vous</a>
+            <button type="submit">S'inscrire</button>
+            <br/><br/>
+            <a href="/login" class="connection-signup">Connectez-vous</a>
         </form>
+        
+        <script>
+            // Add password matching validation
+            document.querySelector('form').addEventListener('submit', function(e) {
+                const password = document.getElementById('Password').value;
+                const confirmPassword = document.getElementById('ConfirmPassword').value;
+                
+                if (password !== confirmPassword) {
+                    e.preventDefault();
+                    alert('Les mots de passe ne correspondent pas');
+                }
+            });
+        </script>
     </body>
 </html>

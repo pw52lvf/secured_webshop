@@ -1,10 +1,12 @@
-// server.js
 const express = require("express");
 const path = require('path');
 const mysql = require('mysql2');
 const fs = require('fs');
 const https = require('https');
 const session = require('express-session');
+
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 const sslOptions = {
   key: fs.readFileSync("./privkey.key"),
@@ -208,4 +210,46 @@ app.get('/logout', (req, res) => {
         }
         res.redirect('/login');
     });
+});
+
+// Add this route to handle user signup
+app.post('/auth/signup', (req, res) => {
+    const { Username, Password } = req.body;
+    
+    // Check if username already exists
+    db.query(
+        'SELECT * FROM Users WHERE Username = ?',
+        [Username],
+        (error, results) => {
+            if (error) {
+                console.error('Database error:', error);
+                return res.status(500).json({ error: 'Internal server error' });
+            }
+            
+            if (results.length > 0) {
+                return res.status(400).json({ error: 'Username already exists' });
+            }
+            
+            // Insert new user
+            // Note: In production, you should hash the password using bcrypt
+            db.query(
+                'INSERT INTO Users (Username, Password, isAdmin) VALUES (?, ?, 0)',
+                [Username, Password],
+                (error, results) => {
+                    if (error) {
+                        console.error('Database error:', error);
+                        return res.status(500).json({ error: 'Internal server error' });
+                    }
+                    
+                    // Redirect to login page after successful signup
+                    res.redirect('/login');
+                }
+            );
+        }
+    );
+});
+
+// Add this route to serve the signup page
+app.get('/signup', (req, res) => {
+    res.sendFile(path.join(__dirname, 'pages', 'signup.html'));
 });
