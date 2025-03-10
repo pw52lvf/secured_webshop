@@ -71,9 +71,18 @@ app.post('/auth/login', (req, res) => {
                 return res.status(401).json({ error: 'Invalid credentials' });
             }
 
-            // For now, comparing password directly
-            // In production, you should use bcrypt.compare()
-            if (Password === results[0].Password) {
+            // Compare password with hashed password in database
+            bcrypt.compare(Password, results[0].Password, (err, isMatch) => {
+                if (err) {
+                    console.error('Comparison error:', err);
+                    return res.status(500).json({ error: 'Internal server error' });
+                }
+                
+                if (!isMatch) {
+                    return res.status(401).json({ error: 'Invalid credentials' });
+                }
+                
+                // Login successful
                 req.session.userId = results[0].id;
                 req.session.isAdmin = results[0].isAdmin;
                 
@@ -82,9 +91,7 @@ app.post('/auth/login', (req, res) => {
                 } else {
                     res.redirect('/user.html');
                 }
-            } else {
-                res.status(401).json({ error: 'Invalid credentials' });
-            }
+            });
         }
     );
 });
@@ -230,21 +237,42 @@ app.post('/auth/signup', (req, res) => {
                 return res.status(400).json({ error: 'Username already exists' });
             }
             
-            // Insert new user
-            // Note: In production, you should hash the password using bcrypt
-            db.query(
-                'INSERT INTO Users (Username, Password, isAdmin) VALUES (?, ?, 0)',
-                [Username, Password],
-                (error, results) => {
+            // Hash the password
+            bcrypt.hash(Password, saltRounds, (err, hashedPassword) => {
+                if (err) {
+                    console.error('Hashing error:', err);
+                    return res.status(500).json({ error: 'Password hashing failed' });
+                }
+                
+                // Get the maximum ID to generate a new one
+                db.query('SELECT MAX(id) as maxId FROM Users', (error, results) => {
                     if (error) {
                         console.error('Database error:', error);
                         return res.status(500).json({ error: 'Internal server error' });
                     }
                     
-                    // Redirect to login page after successful signup
-                    res.redirect('/login');
-                }
-            );
+                    // Generate a new ID safely
+                    let newId = 1; // Default to 1 if table is empty
+                    if (results[0].maxId !== null) {
+                        newId = parseInt(results[0].maxId) + 1;
+                    }
+                    
+                    // Insert new user with hashed password
+                    db.query(
+                        'INSERT INTO Users (id, Username, Password, isAdmin) VALUES (?, ?, ?, 0)',
+                        [newId, Username, hashedPassword],
+                        (error, results) => {
+                            if (error) {
+                                console.error('Database error:', error);
+                                return res.status(500).json({ error: 'Internal server error' });
+                            }
+                            
+                            // Redirect to login page after successful signup
+                            res.redirect('/login');
+                        }
+                    );
+                });
+            });
         }
     );
 });
